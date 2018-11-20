@@ -1,0 +1,32 @@
+$file = "c:\temp\asmVMDetails.csv"
+
+Add-AzureAccount
+#Select-AzureSubscription -SubscriptionName 'Yuna Internal Consumption'
+
+$vmobjs = @()
+
+Write-Host Processing subscription $sub.SubscriptionName
+
+        $vms = Get-AzureVM
+
+        foreach ($vm in $vms)
+        {
+            $uri=$vm.VM.OSVirtualHardDisk.MediaLink.AbsoluteUri
+            $vmInfo = [pscustomobject]@{
+                'Subscription'=$sub.SubscriptionName
+                'Mode'='ASM'
+                'Name'=$vm.Name
+                'CloudServiceName' = $vm.ServiceName
+                'Location' = Get-AzureDisk | Where-Object {$_.MediaLink -eq $uri}| Select-Object Location
+                'VMSize' = $vm.InstanceSize
+                'Status' = $vm.Status
+                'AvailabilitySet' = $vm.VM.AvailabilitySetName
+                }
+        
+            Write-Host Processing $vm.Name
+            $vmobjs += $vmInfo
+
+        }  
+
+$vmobjs | Export-Csv -NoTypeInformation -Path $file
+Write-Host "VM list written to $file" 
