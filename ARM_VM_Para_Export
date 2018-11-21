@@ -1,0 +1,31 @@
+$file = "c:\temp\ARMVMDetails.csv"
+Add-AzureRmAccount
+#$sub = Select-AzureRmSubscription -SubscriptionName 'Martin Internal Consumption'
+
+$vmobjs = @()
+
+Write-Host Processing subscription $sub.Subscription.Name
+
+        $vms = Get-AzureRmVM
+
+        foreach ($vm in $vms)
+        {
+            
+            $vmInfo = [pscustomobject]@{
+                'Subscription'=$sub.Subscription.Name
+                'Mode'='ARM'
+                'Name'=$vm.Name
+                'ResourceGroup'=$vm.ResourceGroupName
+                'Location' = $vm.Location
+                'VMSize' = $vm.HardwareProfile.VmSize
+                'AvailabilitySet' = $vm.AvailabilitySetReference.Id
+                }
+        
+            Write-Host Processing $vm.Name
+            $vmobjs += $vmInfo
+
+        }  
+
+$vmobjs | Export-Csv -NoTypeInformation -Path $file
+Write-Host "VM list written to $file" 
+ 
